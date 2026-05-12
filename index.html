@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相続税シミュレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Chrome, Safari, Edge, Opera の数値入力のスピンボタンを隠す */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox の数値入力のスピンボタンを隠す */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
+            <div class="p-3 bg-blue-100 rounded-full text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">相続税シミュレーター</h1>
+                <p class="text-sm text-gray-500 mt-1">法定相続割合で遺産を分割した場合の目安を計算します</p>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="text-lg font-semibold mb-6 flex items-center text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-blue-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                家族構成と遺産の設定
+            </h2>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        遺産総額（基礎控除前）
+                    </label>
+                    <div class="flex items-center">
+                        <input
+                            type="number"
+                            id="estateValue"
+                            min="0"
+                            value="10000"
+                            class="block w-full max-w-xs px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                        />
+                        <span class="ml-3 font-medium text-gray-700">万円</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            配偶者の有無
+                        </label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="spouse"
+                                    id="spouseYes"
+                                    value="yes"
+                                    checked
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                />
+                                <span class="ml-2 text-gray-700">有り</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="spouse"
+                                    id="spouseNo"
+                                    value="no"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                />
+                                <span class="ml-2 text-gray-700">無し</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            子供の数
+                        </label>
+                        <div class="flex items-center">
+                            <input
+                                type="number"
+                                id="childrenCount"
+                                min="0"
+                                value="2"
+                                class="block w-24 px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                            />
+                            <span class="ml-3 font-medium text-gray-700">人</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div id="resultsArea" class="space-y-6">
+            
+            <!-- Error Message -->
+            <div id="errorBox" class="hidden bg-red-50 p-4 rounded-xl border border-red-200 flex items-center text-red-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                <p id="errorMsg"></p>
+            </div>
+
+            <!-- No Tax Message -->
+            <div id="noTaxBox" class="hidden bg-green-50 p-6 rounded-2xl border border-green-200 text-center">
+                <div class="inline-flex items-center justify-center p-3 bg-green-100 rounded-full text-green-600 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-green-800 mb-2">相続税はかかりません</h3>
+                <p class="text-green-700">
+                    遺産総額（<span id="noTaxEstate"></span>）が基礎控除額（<span id="noTaxDeduction"></span>）を下回っているため、相続税の申告・納税は不要です。
+                </p>
+            </div>
+
+            <!-- Tax Details -->
+            <div id="taxDetailsBox" class="hidden space-y-6">
+                <!-- Tax by Person -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-semibold mb-6 flex items-center text-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-blue-500"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18.9"/><circle cx="16" cy="16" r="6"/></svg>
+                        各人の納税額（目安）
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        <!-- Spouse Box -->
+                        <div id="spouseTaxBox" class="hidden bg-blue-50 p-5 rounded-xl border border-blue-100 relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-semibold text-blue-900 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    配偶者の納税額
+                                </span>
+                            </div>
+                            <div class="text-3xl font-bold text-blue-700">
+                                0<span class="text-lg font-medium ml-1">円</span>
+                            </div>
+                            <div class="mt-3 text-xs text-blue-800/80 bg-blue-100/50 p-2 rounded-lg">
+                                ※法定相続分での取得のため「配偶者の税額軽減」が適用され、納税額は0円となります。（本来の算出税額: <span id="spouseCalcTax"></span>）
+                            </div>
+                        </div>
+
+                        <!-- Child Box -->
+                        <div id="childTaxBox" class="hidden bg-amber-50 p-5 rounded-xl border border-amber-100">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-semibold text-amber-900 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    子供1人あたりの納税額
+                                </span>
+                            </div>
+                            <div id="childFinalTax" class="text-3xl font-bold text-amber-700"></div>
+                            <div id="childrenTotalBox" class="mt-2 text-sm text-amber-800/70 hidden">
+                                子供全員（<span id="childrenTotalCount"></span>人）の合計: <span id="childrenTotalTax"></span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Calculation Steps -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-gray-500"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+                        計算の過程
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between py-2 border-b border-gray-50">
+                            <span class="text-gray-600">遺産総額</span>
+                            <span id="stepEstate" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50">
+                            <span class="text-gray-600">基礎控除額 (3000万 + 600万 × 法定相続人<span id="stepHeirs"></span>人)</span>
+                            <span id="stepDeduction" class="font-medium text-red-500"></span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50">
+                            <span class="text-gray-600">課税遺産総額</span>
+                            <span id="stepTaxable" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between py-2 bg-gray-50 px-3 rounded-lg mt-2">
+                            <span class="text-gray-800 font-medium">相続税の総額</span>
+                            <span id="stepTotalTax" class="font-bold text-gray-900"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 金額のフォーマット（円表記）
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ja-JP').format(amount) + '円';
+        }
+
+        // 税率計算関数
+        function calculateTaxForAmount(amount) {
+            if (amount <= 0) return 0;
+            if (amount <= 10000000) return amount * 0.10;
+            if (amount <= 30000000) return amount * 0.15 - 500000;
+            if (amount <= 50000000) return amount * 0.20 - 2000000;
+            if (amount <= 100000000) return amount * 0.30 - 7000000;
+            if (amount <= 200000000) return amount * 0.40 - 17000000;
+            if (amount <= 300000000) return amount * 0.45 - 27000000;
+            if (amount <= 600000000) return amount * 0.50 - 42000000;
+            return amount * 0.55 - 72000000;
+        }
+
+        function updateCalculation() {
+            // 要素の取得
+            const estateInput = document.getElementById('estateValue').value;
+            const hasSpouse = document.getElementById('spouseYes').checked;
+            const childrenCount = Number(document.getElementById('childrenCount').value);
+
+            // 表示エリアの取得
+            const errorBox = document.getElementById('errorBox');
+            const noTaxBox = document.getElementById('noTaxBox');
+            const taxDetailsBox = document.getElementById('taxDetailsBox');
+            const spouseTaxBox = document.getElementById('spouseTaxBox');
+            const childTaxBox = document.getElementById('childTaxBox');
+            
+            // 一旦すべての結果エリアを隠す
+            errorBox.classList.add('hidden');
+            noTaxBox.classList.add('hidden');
+            taxDetailsBox.classList.add('hidden');
+            spouseTaxBox.classList.add('hidden');
+            childTaxBox.classList.add('hidden');
+            document.getElementById('childrenTotalBox').classList.add('hidden');
+
+            const estateValue = Number(estateInput) * 10000; // 円に変換
+            const spouseCount = hasSpouse ? 1 : 0;
+            const totalHeirs = spouseCount + childrenCount;
+
+            // エラーチェック
+            if (totalHeirs === 0) {
+                document.getElementById('errorMsg').textContent = '相続人がいません。配偶者「有り」にするか、子供の数を1人以上にしてください。';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            // 1. 基礎控除額の計算
+            const basicDeduction = 30000000 + 6000000 * totalHeirs;
+
+            // 2. 課税遺産総額の計算
+            const taxableEstate = Math.max(0, estateValue - basicDeduction);
+
+            // 非課税の場合
+            if (taxableEstate === 0) {
+                document.getElementById('noTaxEstate').textContent = formatCurrency(estateValue);
+                document.getElementById('noTaxDeduction').textContent = formatCurrency(basicDeduction);
+                noTaxBox.classList.remove('hidden');
+                return;
+            }
+
+            // 3. 法定相続分と仮の税額計算
+            let spouseShare = 0;
+            let childShare = 0;
+            
+            if (hasSpouse && childrenCount > 0) {
+                spouseShare = 1 / 2;
+                childShare = (1 / 2) / childrenCount;
+            } else if (hasSpouse && childrenCount === 0) {
+                spouseShare = 1;
+            } else if (!hasSpouse && childrenCount > 0) {
+                childShare = 1 / childrenCount;
+            }
+
+            const spouseTaxableAmount = taxableEstate * spouseShare;
+            const childTaxableAmount = taxableEstate * childShare;
+
+            const spouseCalculatedTax = calculateTaxForAmount(spouseTaxableAmount);
+            const childCalculatedTax = calculateTaxForAmount(childTaxableAmount);
+
+            // 4. 相続税総額
+            const totalTax = spouseCalculatedTax + (childCalculatedTax * childrenCount);
+
+            // 5. 各人の実際の納税額（法定相続分で按分）
+            const childFinalTax = totalTax * childShare;
+
+            // --- UIの更新 ---
+            taxDetailsBox.classList.remove('hidden');
+
+            // 配偶者の表示
+            if (hasSpouse) {
+                document.getElementById('spouseCalcTax').textContent = formatCurrency(spouseCalculatedTax);
+                spouseTaxBox.classList.remove('hidden');
+            }
+
+            // 子供の表示
+            if (childrenCount > 0) {
+                document.getElementById('childFinalTax').textContent = formatCurrency(childFinalTax);
+                childTaxBox.classList.remove('hidden');
+                
+                if (childrenCount > 1) {
+                    document.getElementById('childrenTotalCount').textContent = childrenCount;
+                    document.getElementById('childrenTotalTax').textContent = formatCurrency(childFinalTax * childrenCount);
+                    document.getElementById('childrenTotalBox').classList.remove('hidden');
+                }
+            }
+
+            // 計算過程の表示
+            document.getElementById('stepEstate').textContent = formatCurrency(estateValue);
+            document.getElementById('stepHeirs').textContent = totalHeirs;
+            document.getElementById('stepDeduction').textContent = '- ' + formatCurrency(basicDeduction);
+            document.getElementById('stepTaxable').textContent = formatCurrency(taxableEstate);
+            document.getElementById('stepTotalTax').textContent = formatCurrency(totalTax);
+        }
+
+        // イベントリスナーの設定
+        document.getElementById('estateValue').addEventListener('input', updateCalculation);
+        document.getElementById('spouseYes').addEventListener('change', updateCalculation);
+        document.getElementById('spouseNo').addEventListener('change', updateCalculation);
+        document.getElementById('childrenCount').addEventListener('input', updateCalculation);
+
+        // 初期計算の実行
+        updateCalculation();
+    </script>
+</body>
+</html>
